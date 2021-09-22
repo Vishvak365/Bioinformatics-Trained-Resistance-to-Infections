@@ -1,18 +1,23 @@
 #loading data
 library("readxl")
 
-#getting orig RNA counts
-RNA_counts_orig <- read_xlsx("RNA_counts_orig.xlsx")
+#getting orig RNA counts and forcing data types
+RNA_counts_orig <- read_xlsx("RNA_counts_orig.xlsx", col_types=c("text","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric",
+                                                                 "numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric",
+                                                                 "numeric","numeric","numeric","numeric","numeric", "numeric"))
 
 
-RNA_counts_trans <- as.data.frame(t(RNA_counts_orig))
-plot(density(RNA_counts_orig[1,2: ]))
+#making it a dataframe and some renaming
 RNA_counts_orig_dataframe <- as.data.frame(RNA_counts_orig)
-summed <- SummarizedExperiment(RNA_counts_orig_dataframe[2:17977,2:27 ])
-plotPCA(DESeqTransform(summed))
-colData(summed)
+names(RNA_counts_orig_dataframe)[1] <- "condition"
 
-BiocManager::install("DESeq2")
-install.packages("BiocManager")
-library(M3C)
+#summarizing data, each col needs a colData which is different from just the name of the column, its like a hidden label for each col
+summed <- SummarizedExperiment(RNA_counts_orig_dataframe[2:17977,2:27 ], colData= c("infected", "infected","infected", "infected","infected", "infected",
+                                                                                    "infected", "infected","infected", "infected","infected", "infected",
+                                                                                    "infected", "control", "control","control", "control",
+                                                                                    "control", "control","control", "control","control", "control",
+                                                                                    "control", "control", "control"))
+
+plotPCA(DESeqTransform(summed), intgroup = c("X"))
+
 

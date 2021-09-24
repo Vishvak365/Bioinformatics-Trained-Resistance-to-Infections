@@ -18,6 +18,14 @@ summed <- SummarizedExperiment(RNA_counts_orig_dataframe[2:17977,2:27 ], colData
                                                                                     "control", "control","control", "control","control", "control",
                                                                                     "control", "control", "control"))
 
+#plotPCA of summed
 plotPCA(DESeqTransform(summed), intgroup = c("X"))
 
 
+library(M3C)
+#tsne? 2 diff graphs and compare? why do they change every time???
+tsne(data.matrix(infected),perplex = 3, labels = c("infected"))
+tsne(data.matrix(control),perplex = 3, labels = c("control"))
+
+#differential analysis...
+#prep data...

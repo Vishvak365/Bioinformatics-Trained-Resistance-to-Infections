@@ -4,6 +4,8 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install("SummarizedExperiment")
 BiocManager::install("DESeq2")
 BiocManager::install("apeglm")
+BiocManager::install("EnhancedVolcano")
+
 install.packages("readxl")
 install.packages("tibble")
 install.packages("readr")
@@ -13,15 +15,24 @@ library("readxl")
 library("DESeq2")
 library("tibble")
 library("dplyr")
-
-expression_df <- readr::read_tsv("RNA_counts_orig.tsv") %>%
-  tibble::column_to_rownames("Gene")
-expression_df
-
+?read_tsv
+expression_df <- readr::read_tsv("RNA_counts_orig.tsv",col_types = c("c","d","d","d","d","d","d","d","d","d","d",
+                                                                     "d","d","d","d","d","d","d","d","d","d",
+                                                                     "d","d","d","d","d", "d")) %>%  tibble::column_to_rownames("Gene")
+#?column_to_rownames
+#rownames(expression_df) = make.names(expression_df[1], unique=TRUE)
 filtered_expression_df <- expression_df %>%
   dplyr::filter(rowSums(.) >= 10)
 
 gene_matrix <- round(filtered_expression_df)
+
+
+inf_data <- c("infected", "infected","infected", "infected","infected", "infected",
+              "infected", "infected","infected", "infected","infected", "infected",
+              "infected", "control", "control","control", "control",
+              "control", "control","control", "control","control", "control",
+              "control", "control", "control")
+infected_data <- data.frame("infected_data"=inf_data)
 
 ddset <- DESeqDataSetFromMatrix(countData = gene_matrix, colData = infected_data, design = ~infected_data )
 deseq_object <- DESeq(ddset)
@@ -32,39 +43,28 @@ deseq_results <- lfcShrink(
   coef = 2, # The log fold change coefficient used in DESeq(); the default is 2.
   res = deseq_results # The original DESeq2 results table
 )
-head(deseq_results)
+deseq_results
 
+deseq_df <- deseq_results %>%
+  # make into data.frame
+  as.data.frame() %>%
+  # the gene names are row names -- let's make them a column for easy display
+  tibble::rownames_to_column("Gene") %>%
+  # add a column for significance threshold results
+  dplyr::mutate(threshold = padj < 0.05) %>%
+  # sort by statistic -- the highest values will be genes with
+  # higher expression in RPL10 mutated samples
+  dplyr::arrange(dplyr::desc(log2FoldChange))
 
-
-#-----OLD-------#
-
-
-
-#getting orig RNA counts and forcing data types
-RNA_counts_orig <- read_xlsx("RNA_counts_orig.xlsx")
-samp2 <- RNA_counts_orig[,-1]
-rownames(samp2) <- RNA_counts_orig[,1]
-#RNA_counts_orig %>% remove_rownames %>% column_to_rownames(var="Gene")
-RNA_counts_orig
-
-
-#making it a dataframe and some renaming
-RNA_counts_orig_dataframe <- as.data.frame(RNA_counts_orig)
-names(RNA_counts_orig_dataframe)[1] <- "condition"
-RNA_counts_orig_dataframe
-columnData <- c("text","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric",
-                "numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric","numeric",
-                "numeric","numeric","numeric","numeric","numeric", "numeric")
-
-columnData
-inf_data <- c("infected", "infected","infected", "infected","infected", "infected",
-              "infected", "infected","infected", "infected","infected", "infected",
-              "infected", "control", "control","control", "control",
-              "control", "control","control", "control","control", "control",
-              "control", "control", "control")
-infected_data <- data.frame("infected_data"=inf_data)
-table(infected_data)
-dim(RNA_counts_orig_dataframe)
-ncol(RNA_counts_orig_dataframe)
-ddset <- DESeqDataSetFromMatrix(countData = expression_df, colData = infected_data, design = infected_data )
-?DESeqDataSetFromMatrix
+volcano_plot <- EnhancedVolcano::EnhancedVolcano(
+  deseq_df,
+  lab = deseq_df$Gene,
+  x = "log2FoldChange",
+  y = "padj",
+  pCutoff = 0.01 # Loosen the cutoff since we supplied corrected p-values
+)
+volcano_plot
+ggsave(
+  plot = volcano_plot,
+  file.path(plots_dir, "volcano_plot.png")
+)

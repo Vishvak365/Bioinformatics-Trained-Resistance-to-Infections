@@ -5,11 +5,13 @@ BiocManager::install("SummarizedExperiment")
 BiocManager::install("DESeq2")
 BiocManager::install("apeglm")
 BiocManager::install("EnhancedVolcano")
+BiocManager::install("ComplexHeatmap")
 
 install.packages("readxl")
 install.packages("tibble")
 install.packages("readr")
 install.packages("dplyr")
+BiocManager::install("ComplexHeatmap", force=TRUE)
 #loading data
 library("readxl")
 library("DESeq2")
@@ -68,3 +70,30 @@ ggsave(
   plot = volcano_plot,
   file.path(plots_dir, "volcano_plot.png")
 )
+
+
+
+#-----Part 4--------
+
+#only 1 significant gene, uncomment for actual threshold
+#heatmap_genes = deseq_df$Gene[deseq_df$threshold==TRUE] 
+
+#top ten significant genes
+heatmap_genes = deseq_df$Gene[1:10]
+heatmap_genes %in% rownames(ddset@assays@data@listData[["counts"]])
+#subset the counts that match the top ten from full data set
+heatmap_expression_data = ddset@assays@data@listData[["counts"]][rownames(ddset@assays@data@listData[["counts"]]) %in% heatmap_genes,]
+
+library(ComplexHeatmap)
+#set colors of two groups- infected and not infected
+col_fun = colorRamp2(c(0, 1), c("black", "white"))
+#generate heatmap and save to png
+png(filename = "gene_expr_heatmap.png",
+    width = 10, height = 8)
+Heatmap(heatmap_expression_data, bottom_annotation = HeatmapAnnotation(sample_type = ifelse(inf_data=="infected",
+                                                                                      0,
+                                                                                      1),
+                                                                       col = list(sample_type = col_fun),
+                                                                       show_annotation_name = FALSE),
+        name = "Gene\nExpression")
+dev.off()

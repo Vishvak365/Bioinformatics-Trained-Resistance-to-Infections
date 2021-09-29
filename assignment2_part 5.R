@@ -94,11 +94,23 @@ enriched
 
 ################################
 
+########Part 5ii clusterProfiler for Disease Ontology####################
+BiocManager::install("DOSE")
+library("DOSE")
 
 
+#getting entrez ids and enriching with disease ontology
+enriched_DO <- enrichDO(entrez$ENTREZID, 
+         ont = "DO",
+         minGSSize = 1,
+         pAdjustMethod = "bonferroni",
+         pvalueCutoff = .01)
+#can adjust pvalue, but higher pvalue still produces null result
+
+enriched_DO
 
 
-
+################################
 
 
 

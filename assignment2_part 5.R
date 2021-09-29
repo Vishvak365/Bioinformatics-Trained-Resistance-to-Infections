@@ -61,7 +61,7 @@ deseq_df <- deseq_results %>%
 
 
 
-########Part 5i ####################
+########Part 5i clusterProfiler for Gene Ontology ####################
 BiocManager::install("org.Rn.eg.db")
 BiocManager::install("clusterProfiler")
 library("org.Rn.eg.db")
@@ -113,7 +113,6 @@ enriched_DO
 ################################
 
 
-
 volcano_plot <- EnhancedVolcano::EnhancedVolcano(
   deseq_df,
   lab = deseq_df$Gene,
@@ -126,3 +125,13 @@ ggsave(
   plot = volcano_plot,
   file.path(plots_dir, "volcano_plot.png")
 )
+
+########Part 5iii gProfiler2 for Gene Ontology####################
+install.packages("gprofiler2")
+library("gprofiler2")
+
+gostres <- gost(entrez$SYMBOL, organism="mmusculus", user_threshold=0.05)
+
+#result dataframe
+gostres$result
+################################

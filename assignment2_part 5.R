@@ -59,9 +59,9 @@ deseq_df <- deseq_results %>%
   # higher expression in RPL10 mutated samples
   dplyr::arrange(dplyr::desc(log2FoldChange))
 
+deseq_df
 
-
-########Part 5i clusterProfiler for Gene Ontology ####################
+########Part 5i ClusterProfiler (Gene Ontology) ####################
 BiocManager::install("org.Rn.eg.db")
 BiocManager::install("clusterProfiler")
 library("org.Rn.eg.db")
@@ -83,50 +83,20 @@ library("topGO")
 entrez <- bitr(df$Gene, fromType = "SYMBOL", toType = "ENTREZID", OrgDb = "org.Rn.eg.db")
 entrez
 #needs entrez ids for gene
+
 enriched <- enrichGO(entrez$ENTREZID, 
          'org.Rn.eg.db',
-         ont = "BP",
-         pvalueCutoff = .01)
-
-#what does this mean...
-enriched
-
-
-################################
-
-########Part 5ii clusterProfiler for Disease Ontology####################
-BiocManager::install("DOSE")
-library("DOSE")
-
-
-#getting entrez ids and enriching with disease ontology
-enriched_DO <- enrichDO(entrez$ENTREZID, 
-         ont = "DO",
          minGSSize = 1,
-         pAdjustMethod = "bonferroni",
+         ont = "CC",
          pvalueCutoff = .01)
-#can adjust pvalue, but higher pvalue still produces null result
 
-enriched_DO
-
-
-################################
+enriched
+head(enriched)
+###################################################################
 
 
-volcano_plot <- EnhancedVolcano::EnhancedVolcano(
-  deseq_df,
-  lab = deseq_df$Gene,
-  x = "log2FoldChange",
-  y = "padj",
-  pCutoff = 0.01 # Loosen the cutoff since we supplied corrected p-values
-)
-volcano_plot
-ggsave(
-  plot = volcano_plot,
-  file.path(plots_dir, "volcano_plot.png")
-)
-
-########Part 5iii gProfiler2 for Gene Ontology####################
+######################part 5ii #####################################
+#Gprofiler2 gene ontology
 install.packages("gprofiler2")
 library("gprofiler2")
 
@@ -134,4 +104,28 @@ gostres <- gost(entrez$SYMBOL, organism="mmusculus", user_threshold=0.05)
 
 #result dataframe
 gostres$result
-################################
+
+######################################################################
+
+
+
+########Part 5iii clusterProfiler for Disease Ontology####################
+BiocManager::install("DOSE")
+library("DOSE")
+
+
+#getting entrez ids and enriching with disease ontology
+enriched_DO <- enrichDO(entrez$ENTREZID, 
+                        ont = "DO",
+                        minGSSize = 1,
+                        pAdjustMethod = "bonferroni",
+                        pvalueCutoff = .01)
+#can adjust pvalue, but higher pvalue still produces null result
+
+enriched_DO
+
+
+####################################################################
+
+
+

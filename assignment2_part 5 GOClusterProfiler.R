@@ -83,13 +83,15 @@ library("topGO")
 entrez <- bitr(df$Gene, fromType = "SYMBOL", toType = "ENTREZID", OrgDb = "org.Rn.eg.db")
 entrez
 #needs entrez ids for gene
+
 enriched <- enrichGO(entrez$ENTREZID, 
          'org.Rn.eg.db',
-         ont = "BP",
+         ont = "CC",
          pvalueCutoff = .01)
 
 #what does this mean...
 enriched
 
-
+###################################################################
+head(enriched)
 ###################################################################

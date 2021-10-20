@@ -61,35 +61,68 @@ deseq_df <- deseq_results %>%
   # higher expression in RPL10 mutated samples
   dplyr::arrange(dplyr::desc(log2FoldChange))
 
+deseq_df
 
 #order by pvalue to get most variable genes, not right though, how to get most variable genes?
-deseq_df[order(-deseq_df$baseMean),]
-deseq_df <- deseq_df[order(-deseq_df$baseMean),]
+deseq_df <- deseq_df[order(abs(-deseq_df$log2FoldChange), decreasing = TRUE),]
 #get first 5000 and select only gene name and pval
-dataset <- deseq_df[1:5000,c (1, 2)]
-
+dataset <- deseq_df[3]
 dataset
+dataset <- dataset %>% 
+  mutate(condition = 
+           case_when(log2FoldChange < 0 ~ "inf",
+                     log2FoldChange > 0 ~ "control"))
+dataset
+dataset[1:100, c(1)]
 
-ran <- sample(1:nrow(dataset), .9* nrow(dataset))
-nor <- function(x) {(x-min(x))/(max(x)-min(x))}
+get_dataset <- function(index=5000) {
+  toret <- dataset[1:index, c(1)]
+  
+  return (toret)
+}
 
-datasetnorm <- as.data.frame(lapply(dataset[2], nor))
-summary(datasetnorm)
-datasetnorm
+gene10 <- get_dataset(10)
+gene100 <- get_dataset(100)
+gene1000 <- get_dataset(1000)
+gene10000 <- get_dataset(10000)
 
-dataset_train <- datasetnorm[ran,1]
-dataset_test <- datasetnorm[-ran,1]
+clusters10 <- kmeans(gene10, 5, iter.max = 25, nstart = 1)
+clusters100 <- kmeans(gene100, 5, iter.max = 25, nstart = 1)
+clusters1000 <- kmeans(gene1000, 5, iter.max = 25, nstart = 1)
+clusters10000 <- kmeans(gene10000, 5, iter.max = 25, nstart = 1)
 
-dataset_target_cat <- dataset[ran,1]
-dataset_test_cat <- dataset[-ran, 1]
+#install.packages("ggalluvial")
+library("ggalluvial")
 
-dataset_test_cat
-library("class")
-as.factor(dataset_train)
-pr <- knn(data.frame(dataset_train), data.frame(dataset_test), cl = as.factor(dataset_target_cat), k = 70)
 
-tab <- table(pr, dataset_test_cat)
+clusters10
 
-accuracy <- function(x) {sum(diag(x))/(sum(rowSums(x))) * 100}
-accuracy(tab)
+ggplot(data = as.data.frame(clusters),
+       aes(axis1 = gene_Num, y = accuracy/3)) +
+  scale_x_discrete(limits = c("gene_Num"), expand = c(.02, .05)) +
+  geom_stratum(width = 1/12, fill = "black", color = "grey") +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum))) +
+  ggtitle("Accuracy KNN on different number of genes")
 
+clusters$size
+
+#top ten significant genes
+heatmap_genes = deseq_df$log2FoldChange[1:10]
+heatmap_genes %in% rownames(ddset@assays@data@listData[["counts"]])
+#subset the counts that match the top ten from full data set
+heatmap_expression_data = ddset@assays@data@listData[["counts"]][rownames(ddset@assays@data@listData[["counts"]]) %in% heatmap_genes,]
+
+install.packages("ComplexHeatmap")
+
+library(ComplexHeatmap)
+#set colors of two groups- infected and not infected
+col_fun = colorRamp2(c(0, 1), c("black", "white"))
+#generate heatmap and save to png
+png(filename = "gene_expr_heatmap.png",
+    width = 10, height = 8)
+Heatmap(heatmap_expression_data, bottom_annotation = HeatmapAnnotation(sample_type = ifelse(inf_data=="infected",
+                                                                                            0,
+                                                                                            1),
+                                                                       col = list(sample_type = col_fun),
+                                                                       show_annotation_name = FALSE),
+        name = "Gene\nExpression")

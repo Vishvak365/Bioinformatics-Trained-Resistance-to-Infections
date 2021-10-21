@@ -160,6 +160,7 @@ show(p)
 
 
 ##heatmap
+gene100 <- get_gene_data(100)
 heatmap(as.matrix(gene100), scale="row")
 
 

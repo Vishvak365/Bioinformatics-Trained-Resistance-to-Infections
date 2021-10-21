@@ -121,6 +121,44 @@ plot(hclust_gene10000)
 
 
 
+#install.packages("ggalluvial")
+library("ggalluvial")
+
+#creating sankey plot
+all10 <- c( hclust_gene10$size)
+all100 <- c( hclust_gene100$size)
+all1000 <- c( hclust_gene1000$size)
+all10000 <- c( hclust_gene1000$size)
+clusternum <- c( "1", "2", "3", "4", "5")
+type <- c("gene10", "gene10","gene10","gene10","gene10",
+          "gene100","gene100","gene100","gene100","gene100",
+          "gene1000","gene1000","gene1000","gene1000","gene1000",
+          "gene10000","gene10000","gene10000","gene10000","gene10000")
+scalar1 <- function(x) {x / sqrt(sum(x^2))}
+scalar1(hclust_gene10$size)
+normalize(hclust_gene10$size)
+freq <- c(hclust_gene10$size/10, hclust_gene100$size/100,hclust_gene1000$size/1000, hclust_gene10000$size/10000)
+
+#k = 5
+group <- c("1", "2", "3", "4", "5",
+           "1", "2", "3", "4", "5",
+           "1", "2", "3", "4", "5",
+           "1", "2", "3", "4", "5")
+
+#plotting
+toplot <- data.frame(type, freq, group)
+
+toplot
+
+p <- ggplot(data = toplot,mapping= aes(x = type,stratum = group, alluvium = group, y = freq, fill = group))+
+  geom_flow(stat = "alluvium") +
+  geom_stratum(alpha = .5) +
+  scale_fill_manual(values = c("grey", "green", "red", "blue", "black"))  +
+  ggtitle("Changes in group memberships for different number of genes")
+show(p)
+
+
+
 ##heatmap
 heatmap(as.matrix(gene100), scale="row")
 

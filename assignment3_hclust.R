@@ -91,6 +91,8 @@ clusters100 <- kmeans(gene100, 5, iter.max = 25, nstart = 1)
 clusters1000 <- kmeans(gene1000, 5, iter.max = 25, nstart = 1)
 clusters10000 <- kmeans(gene10000, 5, iter.max = 25, nstart = 1)
 
+
+###Using euclidean algorithm for determined distance
 dist_gene10 <- dist(gene10, method = "euclidean")
 dist_gene100 <- dist(gene100, method = "euclidean")
 dist_gene1000 <- dist(gene1000, method = "euclidean")
@@ -123,6 +125,80 @@ plot(hclust_gene1000)
 
 hclust_gene10000 <- hclust(dist_gene10000, method = "complete")
 plot(hclust_gene10000)
+
+
+
+###Using binary algorithm for determined distance
+dist_gene10 <- dist(gene10, method = "binary")
+dist_gene100 <- dist(gene100, method = "binary")
+dist_gene1000 <- dist(gene1000, method = "binary")
+dist_gene10000 <- dist(gene10000, method = "binary")
+
+
+#ward method
+hclust_gene10 <- hclust(dist_gene10, method = "ward.D")
+plot(hclust_gene10)
+
+hclust_gene100 <- hclust(dist_gene100, method = "ward.D")
+plot(hclust_gene100)
+
+hclust_gene1000 <- hclust(dist_gene1000, method = "ward.D")
+plot(hclust_gene1000)
+
+hclust_gene10000 <- hclust(dist_gene10000, method = "ward.D")
+plot(hclust_gene10000)
+
+
+#complete method
+hclust_gene10 <- hclust(dist_gene10, method = "complete")
+plot(hclust_gene10)
+
+hclust_gene100 <- hclust(dist_gene100, method = "complete")
+plot(hclust_gene100)
+
+hclust_gene1000 <- hclust(dist_gene1000, method = "complete")
+plot(hclust_gene1000)
+
+hclust_gene10000 <- hclust(dist_gene10000, method = "complete")
+plot(hclust_gene10000)
+
+
+
+###Using maximum algorithm for determined distance
+dist_gene10 <- dist(gene10, method = "maximum")
+dist_gene100 <- dist(gene100, method = "maximum")
+dist_gene1000 <- dist(gene1000, method = "maximum")
+dist_gene10000 <- dist(gene10000, method = "maximum")
+
+
+#ward method
+hclust_gene10 <- hclust(dist_gene10, method = "ward.D")
+plot(hclust_gene10)
+
+hclust_gene100 <- hclust(dist_gene100, method = "ward.D")
+plot(hclust_gene100)
+
+hclust_gene1000 <- hclust(dist_gene1000, method = "ward.D")
+plot(hclust_gene1000)
+
+hclust_gene10000 <- hclust(dist_gene10000, method = "ward.D")
+plot(hclust_gene10000)
+
+
+#complete method
+hclust_gene10 <- hclust(dist_gene10, method = "complete")
+plot(hclust_gene10)
+
+hclust_gene100 <- hclust(dist_gene100, method = "complete")
+plot(hclust_gene100)
+
+hclust_gene1000 <- hclust(dist_gene1000, method = "complete")
+plot(hclust_gene1000)
+
+hclust_gene10000 <- hclust(dist_gene10000, method = "complete")
+plot(hclust_gene10000)
+
+
 
 
 

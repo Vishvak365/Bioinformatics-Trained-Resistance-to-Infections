@@ -19,6 +19,7 @@ library("tibble")
 library("dplyr")
 library("apeglm")
 ?read_tsv
+RNA_counts_orig_dataframe <- as.data.frame(RNA_counts_orig)
 expression_df <- readr::read_tsv("RNA_counts_orig.tsv",col_types = c("c","d","d","d","d","d","d","d","d","d","d",
                                                                      "d","d","d","d","d","d","d","d","d","d",
                                                                      "d","d","d","d","d", "d")) %>%  tibble::column_to_rownames("Gene")
@@ -38,6 +39,8 @@ inf_data <- c("infected", "infected","infected", "infected","infected", "infecte
 infected_data <- data.frame("infected_data"=inf_data)
 
 ddset <- DESeqDataSetFromMatrix(countData = gene_matrix, colData = infected_data, design = ~infected_data )
+ddset[,1]
+ddset[,2]
 deseq_object <- DESeq(ddset)
 
 deseq_results <- results(deseq_object)
@@ -62,6 +65,12 @@ deseq_df <- deseq_results %>%
   dplyr::arrange(dplyr::desc(log2FoldChange))
 
 deseq_df
+
+row_names_df_to_remove<-dataset[1]
+temp <- RNA_counts_orig_dataframe[(row.names(RNA_counts_orig_dataframe) %in% row_names_df_to_remove),]
+
+library("topGO")
+RNA_counts_orig_dataframe <- bitr(RNA_counts_orig_dataframe$...1, fromType = "SYMBOL", toType = "ENTREZID", OrgDb = "org.Rn.eg.db")
 
 #order by pvalue to get most variable genes, not right though, how to get most variable genes?
 deseq_df <- deseq_df[order(abs(-deseq_df$log2FoldChange), decreasing = TRUE),]
@@ -107,7 +116,7 @@ clusters10$size
 clusters100$size
 clusters1000$size
 clusters10000$size
-
+gene10
 #install.packages("ggalluvial")
 library("ggalluvial")
 
@@ -144,4 +153,40 @@ p <- ggplot(data = toplot,mapping= aes(x = type,stratum = group, alluvium = grou
   ggtitle("Changes in group memberships for different number of genes")
 show(p)
 
+#heatmap
+map <- heatmap(as.matrix(RNA_counts_orig_dataframe[,-1]), xlab="samples", ylab="genes", main="Expression data")
+map
 
+dataset
+
+get_dataset_compare <- function(subset=5000){
+  #Below is the data partitioning steps
+  dataset <- deseq_df[1:subset,c (1, 2)]
+  nor <- function(x) {(x-min(x))/(max(x)-min(x))}
+  datasetnorm <- as.data.frame(lapply(dataset[2], nor))
+  return(datasetnorm)
+}
+
+fit <- kmeans(gene5000, 5, iter.max = 25, nstart = 1)
+fit
+data <- get_dataset_compare()
+
+infected_data <- data.frame("infected_data"=inf_data[1:13])
+ddset <- DESeqDataSetFromMatrix(countData = gene_matrix[1:13], colData = infected_data, design = ~1)
+deseq_object <- DESeq(ddset)
+deseq_results <- results(deseq_object)
+deseq_results <- lfcShrink(
+  deseq_object, # The original DESeq2 object after running DESeq()
+  coef = 2, # The log fold change coefficient used in DESeq(); the default is 2.
+  res = deseq_results # The original DESeq2 results table
+)
+
+classes_Kmeans <- cl_predict(fit,data)
+as.data.frame(table(classes_Kmeans)) 
+classes_Kmeans
+
+clusters5000$size
+control_gmm_cluster <- c(3720,1041,239)
+infected_gmm_cluster <- c(3737,1028,235)
+
+chisq.test(control_gmm_cluster,infected_gmm_cluster)

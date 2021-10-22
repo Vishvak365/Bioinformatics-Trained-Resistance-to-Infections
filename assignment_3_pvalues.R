@@ -48,4 +48,14 @@ as.data.frame(table(classes_gmm))
 control_gmm_cluster <- c(3720,1041,239)
 infected_gmm_cluster <- c(3737,1028,235)
 
+gmm_cluster_all <- c(3097, 1594, 309)
+kmeans_cluster_all <- c(4999,1,0,0)
+consensus_cluster_all <- c(286,286,260,234,208,182,156,130,104,78,52,26)
+
 chisq.test(control_gmm_cluster,infected_gmm_cluster)
+chisq.test(kmeans_cluster_all,gmm_cluster_all)
+chisq.test(kmeans_cluster_all[1:4],consensus_cluster_all[1:4])
+chisq.test(consensus_cluster_all[1:3],gmm_cluster_all[1:3])
+
+p_values <- c(.2231,.1911,.2231)
+p.adjust(p_values, method = "holm", n = length(p_values))
